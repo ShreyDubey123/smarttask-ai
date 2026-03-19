@@ -1,74 +1,159 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
+  const [isChecked, setIsChecked] = useState(false);
+  const [loginData, setLoginData] = useState({
     email: '',
     password: ''
   });
+  const [signupData, setSignupData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
   const [loading, setLoading] = useState(false);
-  const { login, error } = useAuth();
+  const [error, setError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  
+  const { login, register } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
+  const handleLoginChange = (e) => {
+    setLoginData({
+      ...loginData,
       [e.target.name]: e.target.value
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSignupChange = (e) => {
+    setSignupData({
+      ...signupData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const result = await login(formData.email, formData.password);
+    setError('');
+    
+    const result = await login(loginData.email, loginData.password);
     setLoading(false);
     
     if (result.success) {
       navigate('/tasks');
+    } else {
+      setError(result.error || 'Login failed');
+    }
+  };
+
+  const handleSignupSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    if (signupData.password !== signupData.confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+    
+    setPasswordError('');
+    setLoading(true);
+    
+    const result = await register(signupData.name, signupData.email, signupData.password);
+    setLoading(false);
+    
+    if (result.success) {
+      navigate('/tasks');
+    } else {
+      setError(result.error || 'Registration failed');
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Login to SmartTask</h2>
-        {error && <div className="error-message">{error}</div>}
-        
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              placeholder="Enter your email"
+    <div className="auth-wrapper">
+      <div className="main">
+        <input 
+          type="checkbox" 
+          id="chk" 
+          aria-hidden="true"
+          checked={isChecked}
+          onChange={() => setIsChecked(!isChecked)}
+        />
+
+        {/* Sign Up Form */}
+        <div className="signup">
+          <form onSubmit={handleSignupSubmit}>
+            <label htmlFor="chk" aria-hidden="true">Sign up</label>
+            <input 
+              type="text" 
+              name="name" 
+              placeholder="User name" 
+              value={signupData.name}
+              onChange={handleSignupChange}
+              required 
             />
-          </div>
-          
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              placeholder="Enter your password"
+            <input 
+              type="email" 
+              name="email" 
+              placeholder="Email" 
+              value={signupData.email}
+              onChange={handleSignupChange}
+              required 
             />
-          </div>
-          
-          <button type="submit" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-        
-        <p className="auth-link">
-          Don't have an account? <Link to="/register">Register</Link>
-        </p>
+            <input 
+              type="password" 
+              name="password" 
+              placeholder="Password" 
+              value={signupData.password}
+              onChange={handleSignupChange}
+              required 
+            />
+            <input 
+              type="password" 
+              name="confirmPassword" 
+              placeholder="Confirm Password" 
+              value={signupData.confirmPassword}
+              onChange={handleSignupChange}
+              required 
+            />
+            {passwordError && <div className="auth-error">{passwordError}</div>}
+            {error && !isChecked && <div className="auth-error">{error}</div>}
+            <button type="submit" disabled={loading}>
+              {loading ? 'Processing...' : 'Sign up'}
+            </button>
+          </form>
+        </div>
+
+        {/* Login Form */}
+        <div className="login">
+          <form onSubmit={handleLoginSubmit}>
+            <label htmlFor="chk" aria-hidden="true">Login</label>
+            <input 
+              type="email" 
+              name="email" 
+              placeholder="Email" 
+              value={loginData.email}
+              onChange={handleLoginChange}
+              required 
+            />
+            <input 
+              type="password" 
+              name="password" 
+              placeholder="Password" 
+              value={loginData.password}
+              onChange={handleLoginChange}
+              required 
+            />
+            {error && isChecked && <div className="auth-error">{error}</div>}
+            <button type="submit" disabled={loading}>
+              {loading ? 'Logging in...' : 'Login'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -21,7 +21,7 @@ function AppContent() {
     <div className="App">
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/register" element={<Login />} />
         <Route path="/tasks" element={
           <PrivateRoute>
             <Tasks />
