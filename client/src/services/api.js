@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://localhost:5000/api' });
+// Use environment variable with fallback for local development
+const API = axios.create({ 
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api' 
+});
+
+// Log the API URL being used (helpful for debugging)
+console.log('🔌 API Base URL:', API.defaults.baseURL);
 
 // Request interceptor to add token
 API.interceptors.request.use((req) => {
@@ -20,3 +26,4 @@ export const createTask = (newTask) => API.post('/tasks', newTask);
 export const updateTask = (id, updatedTask) => API.put(`/tasks/${id}`, updatedTask);
 export const deleteTask = (id) => API.delete(`/tasks/${id}`);
 export const completeTask = (id) => API.patch(`/tasks/${id}/complete`);
+export const sendTestEmail = () => API.post('/email/test');
